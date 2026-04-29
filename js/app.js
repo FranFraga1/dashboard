@@ -127,14 +127,10 @@
   }
 
   function bindSwipes() {
-    // En el calendario: swipe horizontal navega mes/semana/día
-    attachSwipe(
-      document.getElementById('view-calendar'),
-      () => window.calendar.nav(1),
-      () => window.calendar.nav(-1)
-    );
-    // En el resto: swipe horizontal cambia de sección
-    ['view-hoy', 'view-ideas', 'view-reservas', 'view-metricas'].forEach((id) => {
+    // Swipe horizontal en TODAS las vistas (incluido calendario) cambia de sección.
+    // Para navegar mes/semana/día están los botones ‹ › del header del calendario.
+    VIEWS_ORDER.forEach((view) => {
+      const id = 'view-' + (view === 'calendar' ? 'calendar' : view);
       attachSwipe(
         document.getElementById(id),
         () => switchToAdjacent(1),

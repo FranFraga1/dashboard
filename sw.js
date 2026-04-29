@@ -2,7 +2,7 @@
 // Estrategia: network-first para HTML/CSS/JS (que tomes cambios al recargar online),
 // cache-first para assets estáticos (íconos, fuentes). Fallback al cache si no hay red.
 
-const VERSION = 'v6';
+const VERSION = 'v7';
 const CACHE = `dashboard-${VERSION}`;
 
 const PRECACHE = [

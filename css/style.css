@@ -1974,10 +1974,19 @@ button {
   .cal-month {
     height: auto;
     min-height: 100%;
+    display: block;
+  }
+
+  .cal-weekdays {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--bg);
   }
 
   .cal-grid {
-    grid-auto-rows: minmax(58px, auto);
+    grid-auto-rows: minmax(64px, auto);
+    height: auto;
   }
 
   .cal-cell {
