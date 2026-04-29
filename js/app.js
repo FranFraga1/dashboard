@@ -67,6 +67,82 @@
     });
   }
 
+  // ===== Swipe horizontal entre vistas y para navegar el calendario =====
+
+  const VIEWS_ORDER = ['hoy', 'calendar', 'ideas', 'reservas', 'metricas'];
+
+  function attachSwipe(el, onLeft, onRight) {
+    if (!el) return;
+    let startX = 0;
+    let startY = 0;
+    let startTime = 0;
+    let tracking = false;
+
+    el.addEventListener(
+      'touchstart',
+      (e) => {
+        if (e.touches.length !== 1) {
+          tracking = false;
+          return;
+        }
+        // Si el touch arranca dentro de un input/textarea/select/botón scrolleable, ignoramos
+        const tag = (e.target.tagName || '').toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') {
+          tracking = false;
+          return;
+        }
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        startTime = Date.now();
+        tracking = true;
+      },
+      { passive: true }
+    );
+
+    el.addEventListener(
+      'touchend',
+      (e) => {
+        if (!tracking) return;
+        tracking = false;
+        if (e.changedTouches.length !== 1) return;
+        const dx = e.changedTouches[0].clientX - startX;
+        const dy = e.changedTouches[0].clientY - startY;
+        const dt = Date.now() - startTime;
+        if (dt > 600) return; // demasiado lento para considerar swipe
+        if (Math.abs(dx) < 60) return; // movimiento muy chico
+        if (Math.abs(dy) > Math.abs(dx) * 0.7) return; // más vertical que horizontal: probablemente scroll
+        if (dx < 0) onLeft && onLeft();
+        else onRight && onRight();
+      },
+      { passive: true }
+    );
+  }
+
+  function switchToAdjacent(delta) {
+    const idx = VIEWS_ORDER.indexOf(currentView);
+    if (idx === -1) return;
+    const next = idx + delta;
+    if (next < 0 || next >= VIEWS_ORDER.length) return;
+    switchView(VIEWS_ORDER[next]);
+  }
+
+  function bindSwipes() {
+    // En el calendario: swipe horizontal navega mes/semana/día
+    attachSwipe(
+      document.getElementById('view-calendar'),
+      () => window.calendar.nav(1),
+      () => window.calendar.nav(-1)
+    );
+    // En el resto: swipe horizontal cambia de sección
+    ['view-hoy', 'view-ideas', 'view-reservas', 'view-metricas'].forEach((id) => {
+      attachSwipe(
+        document.getElementById(id),
+        () => switchToAdjacent(1),
+        () => switchToAdjacent(-1)
+      );
+    });
+  }
+
   function bindMoreMenu() {
     const btn = document.getElementById('btn-more');
     if (!btn) return;
@@ -424,6 +500,7 @@
     bindSettings();
     bindTheme();
     bindMoreMenu();
+    bindSwipes();
     registerServiceWorker();
     window.hoy.init();
     window.calendar.init();
