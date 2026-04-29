@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"
+    />
+    <title>Dashboard</title>
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#0d0d0d" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Dashboard" />
+    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png" />
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- ============= Sidebar ============= -->
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-dot"></span>
+          <span>Dashboard</span>
+        </div>
+
+        <nav class="nav">
+          <div class="nav-item active" data-view="hoy">
+            <span class="icon">◆</span>
+            <span>Hoy</span>
+            <span class="nav-shortcut">0</span>
+          </div>
+          <div class="nav-item" data-view="calendar">
+            <span class="icon">📅</span>
+            <span>Calendario</span>
+            <span class="nav-shortcut">1</span>
+          </div>
+          <div class="nav-item" data-view="ideas">
+            <span class="icon">💡</span>
+            <span>Ideas</span>
+            <span class="nav-shortcut">2</span>
+          </div>
+          <div class="nav-item" data-view="reservas">
+            <span class="icon">🏠</span>
+            <span>Reservas</span>
+            <span class="nav-shortcut">3</span>
+          </div>
+          <div class="nav-item" data-view="metricas">
+            <span class="icon">📊</span>
+            <span>Métricas</span>
+            <span class="nav-shortcut">4</span>
+          </div>
+        </nav>
+
+        <button class="sidebar-cta" id="cta-new" title="Crear nuevo (N)">
+          <span>+</span>
+          <span>Nuevo</span>
+        </button>
+
+        <div class="sidebar-spacer"></div>
+
+        <div class="sidebar-bottom">
+          <div class="nav-item auth-item" id="btn-auth" title="Cuenta">
+            <span class="icon" id="auth-icon">○</span>
+            <div class="auth-text">
+              <span id="auth-label">Iniciar sesión</span>
+              <span id="auth-sublabel" class="auth-sublabel" style="display: none"></span>
+            </div>
+          </div>
+          <div class="nav-item" id="btn-theme" title="Cambiar tema">
+            <span class="icon" id="theme-icon">☾</span>
+            <span id="theme-label">Tema</span>
+          </div>
+          <div class="nav-item" id="btn-settings">
+            <span class="icon">⚙</span>
+            <span>Datos</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ============= Main ============= -->
+      <main class="main">
+        <!-- Hoy -->
+        <section class="view active" id="view-hoy">
+          <header class="view-header">
+            <span class="view-title" id="hoy-title">Hoy</span>
+            <span style="color: var(--text-dim); font-size: 13px" id="hoy-date"></span>
+            <div class="spacer"></div>
+            <button class="btn btn-primary" id="hoy-new">+ Nueva tarea</button>
+          </header>
+          <div class="view-body" id="hoy-body"></div>
+        </section>
+
+        <!-- Calendario -->
+        <section class="view" id="view-calendar">
+          <header class="view-header">
+            <div class="cal-controls">
+              <button class="icon-btn" id="cal-prev" title="Anterior (←)">‹</button>
+              <button class="btn" id="cal-today" title="Hoy (T)">Hoy</button>
+              <button class="icon-btn" id="cal-next" title="Siguiente (→)">›</button>
+              <span class="month-label" id="cal-month-label">—</span>
+            </div>
+            <div class="spacer"></div>
+            <div class="view-toggle" id="cal-toggle">
+              <button data-mode="month" class="active">Mes</button>
+              <button data-mode="week">Semana</button>
+              <button data-mode="day">Día</button>
+            </div>
+          </header>
+          <div class="view-body" id="cal-body"></div>
+        </section>
+
+        <!-- Ideas -->
+        <section class="view" id="view-ideas">
+          <header class="view-header">
+            <span class="view-title">Ideas</span>
+            <div class="spacer"></div>
+            <span class="nav-shortcut" style="font-size: 11px">N para nueva</span>
+          </header>
+          <div class="view-body">
+            <div class="ideas-capture">
+              <input
+                type="text"
+                id="idea-input"
+                placeholder="Capturá una idea… (Enter para guardar)"
+                autocomplete="off"
+              />
+            </div>
+            <div class="search-bar">
+              <span style="color: var(--text-muted)">/</span>
+              <input
+                type="text"
+                id="idea-search"
+                placeholder="Buscar ideas…"
+                autocomplete="off"
+              />
+            </div>
+            <div class="ideas-list" id="ideas-list"></div>
+          </div>
+        </section>
+
+        <!-- Métricas -->
+        <section class="view" id="view-metricas">
+          <header class="view-header">
+            <span class="view-title">Métricas</span>
+            <div class="spacer"></div>
+            <div class="view-toggle" id="metricas-year-toggle">
+              <button data-dir="-1">‹</button>
+              <button class="active" id="metricas-year-label">—</button>
+              <button data-dir="1">›</button>
+            </div>
+          </header>
+          <div class="view-body" id="metricas-body"></div>
+        </section>
+
+        <!-- Reservas -->
+        <section class="view" id="view-reservas">
+          <header class="view-header">
+            <span class="view-title">Reservas</span>
+            <div class="spacer"></div>
+            <button class="btn btn-primary" id="reserva-new">+ Nueva reserva</button>
+          </header>
+          <div class="view-body">
+            <div class="reservas-toolbar">
+              <div class="reservas-filters" id="reservas-filters">
+                <button data-filter="proximas" class="active">Próximas</button>
+                <button data-filter="curso">En curso</button>
+                <button data-filter="pasadas">Pasadas</button>
+                <button data-filter="todas">Todas</button>
+              </div>
+              <div class="reservas-stats" id="reservas-stats">
+                <div>Total confirmado</div>
+                <strong id="reservas-total">$0</strong>
+              </div>
+            </div>
+            <div class="reservas-grid" id="reservas-grid"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- ============= Modales ============= -->
+
+    <!-- Modal evento -->
+    <div class="modal-backdrop" id="modal-event">
+      <div class="modal">
+        <h2 id="event-modal-title">Nueva tarea</h2>
+        <input type="hidden" id="event-id" />
+        <div class="modal-row">
+          <label>Título</label>
+          <input type="text" id="event-title" placeholder="Reunión, llamada, recordatorio…" />
+        </div>
+        <div class="modal-row split">
+          <div class="modal-row" style="margin: 0">
+            <label>Fecha</label>
+            <input type="date" id="event-date" />
+          </div>
+          <div class="modal-row" style="margin: 0">
+            <label>Inicio</label>
+            <input type="time" id="event-start" />
+          </div>
+          <div class="modal-row" style="margin: 0">
+            <label>Fin</label>
+            <input type="time" id="event-end" />
+          </div>
+        </div>
+        <div class="modal-row">
+          <label>Nota</label>
+          <textarea id="event-note" placeholder="Detalles, link, contexto…"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-danger" id="event-delete" style="display: none">Eliminar</button>
+          <button class="btn" data-close>Cancelar</button>
+          <button class="btn btn-primary" id="event-save">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal reserva -->
+    <div class="modal-backdrop" id="modal-reserva">
+      <div class="modal">
+        <h2 id="reserva-modal-title">Nueva reserva</h2>
+        <input type="hidden" id="reserva-id" />
+        <div class="modal-row split">
+          <div class="modal-row" style="margin: 0">
+            <label>Plataforma</label>
+            <select id="reserva-platform">
+              <option value="airbnb">Airbnb</option>
+              <option value="booking">Booking</option>
+              <option value="directo">Directo</option>
+            </select>
+          </div>
+          <div class="modal-row" style="margin: 0">
+            <label>Estado</label>
+            <select id="reserva-status">
+              <option value="confirmada">Confirmada</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="cancelada">Cancelada</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-row">
+          <label>Huésped</label>
+          <input type="text" id="reserva-guest" placeholder="Nombre del huésped" />
+        </div>
+        <div class="modal-row">
+          <label>Propiedad</label>
+          <input type="text" id="reserva-property" placeholder="Departamento Palermo, Cabaña Bariloche…" />
+        </div>
+        <div class="modal-row split">
+          <div class="modal-row" style="margin: 0">
+            <label>Check-in</label>
+            <input type="date" id="reserva-checkin" />
+          </div>
+          <div class="modal-row" style="margin: 0">
+            <label>Check-out</label>
+            <input type="date" id="reserva-checkout" />
+          </div>
+        </div>
+        <div class="modal-row split">
+          <div class="modal-row" style="margin: 0">
+            <label>Monto (ARS)</label>
+            <input type="number" id="reserva-amount" placeholder="0" inputmode="decimal" />
+          </div>
+          <div class="modal-row" style="margin: 0">
+            <label>Notas</label>
+            <input type="text" id="reserva-note" placeholder="Opcional" />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-danger" id="reserva-delete" style="display: none">Eliminar</button>
+          <button class="btn" data-close>Cancelar</button>
+          <button class="btn btn-primary" id="reserva-save">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal login -->
+    <div class="modal-backdrop" id="modal-auth">
+      <div class="modal modal-auth">
+        <div id="auth-step-form">
+          <h2>Iniciá sesión</h2>
+          <p class="auth-help">
+            Te enviamos un link a tu email para entrar. Tus datos se sincronizan entre dispositivos.
+          </p>
+          <div class="modal-row">
+            <label>Email</label>
+            <input
+              type="email"
+              id="auth-email"
+              placeholder="vos@email.com"
+              autocomplete="email"
+              inputmode="email"
+            />
+          </div>
+          <div class="auth-error" id="auth-error"></div>
+          <div class="modal-actions">
+            <button class="btn" data-close>Cancelar</button>
+            <button class="btn btn-primary" id="auth-submit">Enviarme link</button>
+          </div>
+        </div>
+        <div id="auth-step-sent" style="display: none">
+          <h2>Revisá tu mail ✉</h2>
+          <p class="auth-help">
+            Te enviamos un mail a <strong id="auth-sent-email"></strong>. Pegá el
+            <strong>código de 6 dígitos</strong> que dice ahí (funciona siempre, también en la app
+            del celular). O tocá el botón "Log In" desde el mismo dispositivo.
+          </p>
+          <div class="modal-row">
+            <label>Código del mail</label>
+            <input
+              type="text"
+              id="auth-code"
+              placeholder="123456"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              maxlength="6"
+            />
+          </div>
+          <div class="auth-error" id="auth-error-code"></div>
+          <div class="modal-actions">
+            <button class="btn" id="auth-resend">Reenviar</button>
+            <button class="btn btn-primary" id="auth-verify">Entrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Indicador de sync (esquina superior derecha) -->
+    <div class="sync-indicator idle" id="sync-indicator" title="Sincronizado"></div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- FAB móvil (+ Nuevo) -->
+    <button class="fab" id="fab-new" title="Crear nuevo (N)" aria-label="Crear nuevo">+</button>
+
+    <!-- ============= Scripts ============= -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/sync.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/ideas.js"></script>
+    <script src="js/reservas.js"></script>
+    <script src="js/hoy.js"></script>
+    <script src="js/metricas.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
