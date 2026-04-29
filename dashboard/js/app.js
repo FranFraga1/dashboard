@@ -67,6 +67,165 @@
     });
   }
 
+  function bindMoreMenu() {
+    const btn = document.getElementById('btn-more');
+    if (!btn) return;
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const existing = document.querySelector('.more-menu');
+      if (existing) {
+        existing.remove();
+        return;
+      }
+
+      const menu = document.createElement('div');
+      menu.className = 'settings-menu more-menu';
+
+      // Cuenta
+      const accountSection = document.createElement('div');
+      accountSection.className = 'more-section';
+      accountSection.textContent = 'Cuenta';
+      menu.appendChild(accountSection);
+
+      const accountBtn = document.createElement('button');
+      const user = window.auth && window.auth.getUser ? window.auth.getUser() : null;
+      if (user) {
+        accountBtn.innerHTML = `<span>●</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${user.email}</span>`;
+      } else {
+        accountBtn.innerHTML = `<span>○</span><span>Iniciar sesión</span>`;
+      }
+      accountBtn.addEventListener('click', () => {
+        menu.remove();
+        document.getElementById('btn-auth').click();
+      });
+      menu.appendChild(accountBtn);
+
+      if (user && window.sync) {
+        const syncBtn = document.createElement('button');
+        syncBtn.innerHTML = '<span>↻</span><span>Sincronizar ahora</span>';
+        syncBtn.addEventListener('click', async () => {
+          menu.remove();
+          await window.sync.fullSync();
+        });
+        menu.appendChild(syncBtn);
+
+        const outBtn = document.createElement('button');
+        outBtn.className = 'danger';
+        outBtn.innerHTML = '<span>↪</span><span>Cerrar sesión</span>';
+        outBtn.addEventListener('click', async () => {
+          menu.remove();
+          if (!confirm('¿Cerrar sesión? Los datos quedan en este dispositivo.')) return;
+          await window.auth.signOut();
+        });
+        menu.appendChild(outBtn);
+      }
+
+      menu.appendChild(divider());
+
+      // Tema
+      const themeBtn = document.createElement('button');
+      const isDark =
+        (document.documentElement.getAttribute('data-theme') || 'dark') === 'dark';
+      themeBtn.innerHTML = isDark
+        ? '<span>☀</span><span>Tema claro</span>'
+        : '<span>☾</span><span>Tema oscuro</span>';
+      themeBtn.addEventListener('click', () => {
+        menu.remove();
+        document.getElementById('btn-theme').click();
+      });
+      menu.appendChild(themeBtn);
+
+      menu.appendChild(divider());
+
+      // Datos
+      const dataSection = document.createElement('div');
+      dataSection.className = 'more-section';
+      dataSection.textContent = 'Datos';
+      menu.appendChild(dataSection);
+
+      const exportBtn = document.createElement('button');
+      exportBtn.innerHTML = '<span>↓</span><span>Exportar JSON</span>';
+      exportBtn.addEventListener('click', () => {
+        menu.remove();
+        const data = storage.exportAll();
+        const blob = new Blob([JSON.stringify(data, null, 2)], {
+          type: 'application/json',
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dashboard-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast('Backup descargado');
+      });
+      menu.appendChild(exportBtn);
+
+      const importBtn = document.createElement('button');
+      importBtn.innerHTML = '<span>↑</span><span>Importar JSON</span>';
+      importBtn.addEventListener('click', () => {
+        menu.remove();
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json';
+        input.addEventListener('change', () => {
+          const file = input.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const data = JSON.parse(reader.result);
+              storage.importAll(data);
+              rerenderAll();
+              toast('Datos importados');
+            } catch (err) {
+              alert('JSON inválido: ' + err.message);
+            }
+          };
+          reader.readAsText(file);
+        });
+        input.click();
+      });
+      menu.appendChild(importBtn);
+
+      const clearBtn = document.createElement('button');
+      clearBtn.className = 'danger';
+      clearBtn.innerHTML = '<span>✕</span><span>Borrar todo</span>';
+      clearBtn.addEventListener('click', () => {
+        menu.remove();
+        if (
+          confirm(
+            'Esto borra eventos, ideas y reservas de este dispositivo. ¿Seguir?\n\n(Conviene exportar antes.)'
+          )
+        ) {
+          storage.clearAll();
+          rerenderAll();
+          toast('Todo borrado');
+        }
+      });
+      menu.appendChild(clearBtn);
+
+      const rect = btn.getBoundingClientRect();
+      menu.style.left = rect.left + 'px';
+      menu.style.bottom = window.innerHeight - rect.top + 8 + 'px';
+      document.body.appendChild(menu);
+
+      const closeOnOutside = (ev) => {
+        if (!menu.contains(ev.target) && !btn.contains(ev.target)) {
+          menu.remove();
+          document.removeEventListener('click', closeOnOutside);
+        }
+      };
+      setTimeout(() => document.addEventListener('click', closeOnOutside), 0);
+    });
+  }
+
+  function divider() {
+    const d = document.createElement('div');
+    d.className = 'more-divider';
+    return d;
+  }
+
   function bindTheme() {
     const saved = localStorage.getItem('dashboard.theme') || 'dark';
     applyTheme(saved);
@@ -264,6 +423,7 @@
     bindShortcuts();
     bindSettings();
     bindTheme();
+    bindMoreMenu();
     registerServiceWorker();
     window.hoy.init();
     window.calendar.init();

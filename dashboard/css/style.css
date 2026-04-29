@@ -167,6 +167,10 @@ button {
     background var(--t-fast) var(--ease);
 }
 
+.nav-more {
+  display: none; /* Solo visible en mobile */
+}
+
 .nav-item:hover {
   color: var(--text);
   background: rgba(255, 255, 255, 0.03);
@@ -1752,8 +1756,9 @@ button {
 
 @media (max-width: 767px) {
   html, body {
-    overflow: auto;
+    overflow: hidden;
     -webkit-tap-highlight-color: transparent;
+    height: 100%;
   }
 
   body {
@@ -1766,6 +1771,7 @@ button {
     grid-template-rows: 1fr auto;
     height: 100vh;
     height: 100dvh;
+    overflow: hidden;
   }
 
   /* Sidebar → bottom nav */
@@ -1785,7 +1791,8 @@ button {
 
   .brand,
   .sidebar-cta,
-  .sidebar-spacer {
+  .sidebar-spacer,
+  .sidebar-bottom {
     display: none;
   }
 
@@ -1796,10 +1803,9 @@ button {
     gap: 0;
   }
 
-  .sidebar-bottom {
-    flex-direction: row;
-    margin: 0;
-    gap: 0;
+  /* Mostrar el item "Más" solo en mobile */
+  .nav-more {
+    display: flex !important;
   }
 
   .nav-item {
@@ -1848,27 +1854,49 @@ button {
   .main {
     grid-row: 1;
     overflow: hidden;
+    min-height: 0;
   }
 
   .view {
     height: 100%;
+    min-height: 0;
   }
 
   .view-header {
-    padding: 0 16px;
-    height: 52px;
-    gap: 8px;
+    padding: 0 14px;
     padding-top: env(safe-area-inset-top, 0px);
-    height: calc(52px + env(safe-area-inset-top, 0px));
+    min-height: calc(52px + env(safe-area-inset-top, 0px));
+    height: auto;
+    gap: 6px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    background: var(--bg);
+    position: relative;
+    z-index: 5;
   }
 
   .view-title {
     font-size: 15px;
   }
 
+  /* Header de Hoy: la fecha debajo del título */
+  #view-hoy .view-header {
+    flex-wrap: wrap;
+    padding-bottom: 8px;
+  }
+
+  #hoy-date {
+    width: 100%;
+    order: 10;
+    margin-top: -4px;
+    font-size: 12px !important;
+  }
+
   .view-body {
-    padding: 16px;
+    padding: 14px;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-bottom: 80px; /* margen para que el contenido no quede tapado por el FAB */
   }
 
   /* Botones más amigables al toque */
@@ -1902,48 +1930,83 @@ button {
     gap: 12px;
   }
 
-  /* Calendario */
+  /* Calendario header: controles + toggle en dos filas si no entran */
   .cal-controls {
-    gap: 2px;
+    gap: 0;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .cal-controls .month-label {
     min-width: 0;
+    flex: 1;
     font-size: 13px;
-    padding: 0 6px;
+    padding: 0 4px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #view-calendar .view-header .spacer {
+    display: none;
+  }
+
+  .view-toggle {
+    width: 100%;
+    order: 10;
+    padding-bottom: 6px;
   }
 
   .view-toggle button {
-    padding: 4px 8px;
-    font-size: 11px;
-    min-height: 32px;
+    flex: 1;
+    padding: 6px 8px;
+    font-size: 12px;
+    min-height: 36px;
   }
 
-  /* Vista mes en mobile: más compacta, texto oculto */
+  /* Vista mes en mobile: dots compactos en la celda, texto oculto */
+  .cal-month {
+    height: auto;
+    min-height: 100%;
+  }
+
+  .cal-grid {
+    grid-auto-rows: minmax(58px, auto);
+  }
+
   .cal-cell {
-    min-height: 56px;
-    padding: 4px 4px;
+    min-height: 58px;
+    padding: 4px 3px;
+    gap: 2px;
   }
 
   .cal-cell-num {
     font-size: 11px;
+    text-align: center;
   }
 
   .cal-cell.today .cal-cell-num {
-    width: 18px;
-    height: 18px;
-    font-size: 10px;
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+    margin: 0 auto;
+  }
+
+  /* Eventos como dots horizontales */
+  .cal-cell {
+    align-items: stretch;
   }
 
   .cal-event {
-    font-size: 10px;
-    padding: 1px 4px;
-    height: 4px;
+    font-size: 0;
+    padding: 0;
+    height: 5px;
     overflow: hidden;
-    text-indent: -9999px;
     border-left-width: 0;
     border-radius: 2px;
     background: var(--accent);
+    margin: 0 1px;
   }
 
   .cal-event.reserva {
@@ -1961,6 +2024,14 @@ button {
 
   .cal-more {
     font-size: 9px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+
+  .cal-weekday {
+    padding: 6px 2px;
+    text-align: center;
+    font-size: 10px;
   }
 
   /* Vista lista (semana / día): full width, mejor espacio */
@@ -2036,7 +2107,8 @@ button {
   .modal {
     width: 100vw;
     max-width: 100vw;
-    max-height: 92vh;
+    max-height: 90vh;
+    height: auto;
     border-radius: var(--radius) var(--radius) 0 0;
     border-left: none;
     border-right: none;
@@ -2044,6 +2116,8 @@ button {
     padding: 20px 18px;
     padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
     overscroll-behavior: contain;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     animation: modalSlideUp 240ms var(--ease);
   }
 
@@ -2094,19 +2168,46 @@ button {
     font-size: 16px;
   }
 
-  /* Settings popover: en mobile se ancla al fondo */
-  .settings-menu {
+  /* Settings / Account / More popovers: en mobile son bottom sheets */
+  .settings-menu,
+  .account-menu,
+  .more-menu {
     position: fixed !important;
-    left: 16px !important;
-    right: 16px !important;
-    bottom: calc(78px + env(safe-area-inset-bottom, 0px)) !important;
+    left: 12px !important;
+    right: 12px !important;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
     top: auto !important;
     min-width: 0;
+    padding: 8px;
+    border-radius: var(--radius);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+    animation: menuSlideUp 200ms var(--ease);
   }
 
-  .settings-menu button {
-    padding: 12px 12px;
+  .settings-menu button,
+  .account-menu button,
+  .more-menu button {
+    padding: 14px 14px;
     font-size: 14px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .more-menu .more-section {
+    padding: 6px 14px 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .more-menu .more-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 6px 0;
   }
 
   /* Toast: más arriba para no chocar con la bottom nav */
@@ -2158,6 +2259,17 @@ button {
   from {
     opacity: 0;
     transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes menuSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
