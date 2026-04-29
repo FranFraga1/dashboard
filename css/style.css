@@ -1722,7 +1722,7 @@ button {
   display: none;
   position: fixed;
   right: 18px;
-  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(60px + env(safe-area-inset-bottom, 0px));
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -1780,8 +1780,8 @@ button {
     flex-direction: row;
     align-items: center;
     justify-content: space-around;
-    padding: 6px 4px;
-    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    padding: 2px 2px;
+    padding-bottom: calc(2px + env(safe-area-inset-bottom, 0px));
     border-right: none;
     border-top: 1px solid var(--border);
     background: var(--panel);
@@ -1813,23 +1813,23 @@ button {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    padding: 6px 4px;
+    gap: 1px;
+    padding: 4px 2px;
     min-width: 0;
-    min-height: 52px;
-    font-size: 10px;
+    min-height: 44px;
+    font-size: 9px;
     text-align: center;
   }
 
   .nav-item .icon {
-    width: 22px;
-    height: 22px;
-    font-size: 18px;
+    width: 20px;
+    height: 20px;
+    font-size: 16px;
   }
 
   .nav-item span:not(.icon):not(.nav-shortcut) {
-    font-size: 10px;
-    line-height: 1.2;
+    font-size: 9px;
+    line-height: 1.1;
   }
 
   .nav-shortcut {
@@ -1897,6 +1897,11 @@ button {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     padding-bottom: 80px; /* margen para que el contenido no quede tapado por el FAB */
+    touch-action: pan-y; /* permite que JS capture swipes horizontales sin bloquear scroll vertical */
+  }
+
+  .view {
+    touch-action: pan-y;
   }
 
   /* Botones más amigables al toque */
