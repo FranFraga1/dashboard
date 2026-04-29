@@ -1,12 +1,16 @@
-// storage.js — wrapper único de persistencia.
-// MVP: localStorage. Para empaquetar con Tauri, reemplazar este archivo
-// por una versión que use @tauri-apps/api/fs o tauri-plugin-sql.
+// storage.js — wrapper de persistencia con cache local + sync opcional
+// Cache: localStorage (lecturas instantáneas, sincrónicas).
+// Sync: si hay sesión Supabase, cada add/update/remove se encola para subir.
+// La interfaz pública NO cambió desde la versión local-only.
 
 (function () {
   const PREFIX = 'dashboard.';
+  const TABLES = ['events', 'ideas', 'reservas'];
+  const subscribers = new Set();
 
   function uid() {
-    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
   }
 
   function read(key) {
@@ -23,35 +27,57 @@
     localStorage.setItem(PREFIX + key, JSON.stringify(value));
   }
 
-  function makeCollection(key) {
+  function emit() {
+    subscribers.forEach((fn) => {
+      try { fn(); } catch (e) { console.warn(e); }
+    });
+  }
+
+  function subscribe(fn) {
+    subscribers.add(fn);
+    return () => subscribers.delete(fn);
+  }
+
+  function pushSync(op) {
+    if (window.sync && typeof window.sync.push === 'function') {
+      window.sync.push(op);
+    }
+  }
+
+  function makeCollection(table) {
     return {
       list() {
-        return read(key);
+        return read(table);
       },
       get(id) {
-        return read(key).find((x) => x.id === id) || null;
+        return read(table).find((x) => x.id === id) || null;
       },
       add(obj) {
-        const items = read(key);
-        const item = { id: uid(), createdAt: Date.now(), ...obj };
+        const items = read(table);
+        const item = { id: uid(), createdAt: Date.now(), updatedAt: Date.now(), ...obj };
+        if (!item.id) item.id = uid();
         items.push(item);
-        write(key, items);
+        write(table, items);
+        pushSync({ kind: 'upsert', table, item });
         return item;
       },
       update(id, patch) {
-        const items = read(key);
+        const items = read(table);
         const idx = items.findIndex((x) => x.id === id);
         if (idx === -1) return null;
         items[idx] = { ...items[idx], ...patch, updatedAt: Date.now() };
-        write(key, items);
+        write(table, items);
+        pushSync({ kind: 'upsert', table, item: items[idx] });
         return items[idx];
       },
       remove(id) {
-        const items = read(key).filter((x) => x.id !== id);
-        write(key, items);
+        const items = read(table).filter((x) => x.id !== id);
+        write(table, items);
+        pushSync({ kind: 'delete', table, id });
       },
       replaceAll(arr) {
-        write(key, Array.isArray(arr) ? arr : []);
+        write(table, Array.isArray(arr) ? arr : []);
+        emit();
       },
     };
   }
@@ -60,6 +86,16 @@
     events: makeCollection('events'),
     ideas: makeCollection('ideas'),
     reservas: makeCollection('reservas'),
+
+    subscribe,
+
+    // Llamado por sync.js cuando llegan datos del servidor.
+    // No reemita push (evita loops) y dispara emit() para que la UI re-renderice.
+    _replaceLocal(table, items) {
+      if (!TABLES.includes(table)) return;
+      write(table, items);
+      emit();
+    },
 
     exportAll() {
       return {
@@ -76,12 +112,12 @@
       if (Array.isArray(data.events)) write('events', data.events);
       if (Array.isArray(data.ideas)) write('ideas', data.ideas);
       if (Array.isArray(data.reservas)) write('reservas', data.reservas);
+      emit();
     },
 
     clearAll() {
-      write('events', []);
-      write('ideas', []);
-      write('reservas', []);
+      TABLES.forEach((t) => write(t, []));
+      emit();
     },
   };
 

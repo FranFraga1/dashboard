@@ -74,6 +74,13 @@
         <div class="sidebar-spacer"></div>
 
         <div class="sidebar-bottom">
+          <div class="nav-item auth-item" id="btn-auth" title="Cuenta">
+            <span class="icon" id="auth-icon">○</span>
+            <div class="auth-text">
+              <span id="auth-label">Iniciar sesión</span>
+              <span id="auth-sublabel" class="auth-sublabel" style="display: none"></span>
+            </div>
+          </div>
           <div class="nav-item" id="btn-theme" title="Cambiar tema">
             <span class="icon" id="theme-icon">☾</span>
             <span id="theme-label">Tema</span>
@@ -282,6 +289,46 @@
       </div>
     </div>
 
+    <!-- Modal login -->
+    <div class="modal-backdrop" id="modal-auth">
+      <div class="modal modal-auth">
+        <div id="auth-step-form">
+          <h2>Iniciá sesión</h2>
+          <p class="auth-help">
+            Te enviamos un link a tu email para entrar. Tus datos se sincronizan entre dispositivos.
+          </p>
+          <div class="modal-row">
+            <label>Email</label>
+            <input
+              type="email"
+              id="auth-email"
+              placeholder="vos@email.com"
+              autocomplete="email"
+              inputmode="email"
+            />
+          </div>
+          <div class="auth-error" id="auth-error"></div>
+          <div class="modal-actions">
+            <button class="btn" data-close>Cancelar</button>
+            <button class="btn btn-primary" id="auth-submit">Enviarme link</button>
+          </div>
+        </div>
+        <div id="auth-step-sent" style="display: none">
+          <h2>Revisá tu mail ✉</h2>
+          <p class="auth-help">
+            Te enviamos el link de acceso a <strong id="auth-sent-email"></strong>. Abrí ese mail
+            desde este mismo dispositivo y tocá el botón. Si no te llegó, revisá spam.
+          </p>
+          <div class="modal-actions">
+            <button class="btn btn-primary" data-close>Listo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Indicador de sync (esquina superior derecha) -->
+    <div class="sync-indicator idle" id="sync-indicator" title="Sincronizado"></div>
+
     <!-- Toast -->
     <div class="toast" id="toast"></div>
 
@@ -289,7 +336,11 @@
     <button class="fab" id="fab-new" title="Crear nuevo (N)" aria-label="Crear nuevo">+</button>
 
     <!-- ============= Scripts ============= -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="js/supabase-client.js"></script>
     <script src="js/storage.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/sync.js"></script>
     <script src="js/calendar.js"></script>
     <script src="js/ideas.js"></script>
     <script src="js/reservas.js"></script>

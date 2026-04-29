@@ -250,8 +250,16 @@
     });
   }
 
+  function rerenderAll() {
+    if (window.hoy) window.hoy.render();
+    if (window.calendar) window.calendar.refresh();
+    if (window.ideas) window.ideas.render();
+    if (window.reservas) window.reservas.render();
+    if (window.metricas) window.metricas.render();
+  }
+
   function init() {
-    window.app = { switchView, openModal, closeModal, toast };
+    window.app = { switchView, openModal, closeModal, toast, rerenderAll };
     bindNav();
     bindShortcuts();
     bindSettings();
@@ -262,6 +270,17 @@
     window.ideas.init();
     window.reservas.init();
     window.metricas.init();
+
+    // Re-render cuando el storage cambia (típicamente por pull de Supabase)
+    if (window.storage && window.storage.subscribe) {
+      window.storage.subscribe(() => rerenderAll());
+    }
+
+    // Auth + sync (solo si Supabase cargó)
+    if (window.supabaseClient && window.auth && window.sync) {
+      window.sync.init();
+      window.auth.init();
+    }
   }
 
   if (document.readyState === 'loading') {
