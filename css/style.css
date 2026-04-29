@@ -1,0 +1,2045 @@
+/* ========================================
+   Dashboard — paleta + layout + animaciones
+   Editar variables en :root para temar todo
+   ======================================== */
+
+:root,
+:root[data-theme='dark'] {
+  --bg: #0d0d0d;
+  --panel: #141414;
+  --panel-2: #1a1a1a;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --text: #ffffff;
+  --text-dim: #888;
+  --text-muted: #555;
+  --accent: #2d6a4f;
+  --accent-light: #74c69d;
+  --accent-soft: rgba(45, 106, 79, 0.18);
+  --reserva: #4a90e2;
+  --reserva-soft: rgba(74, 144, 226, 0.18);
+  --booking: #4a90e2;
+  --booking-soft: rgba(74, 144, 226, 0.18);
+  --airbnb: #ff8c42;
+  --airbnb-soft: rgba(255, 140, 66, 0.18);
+  --directo: #2d6a4f;
+  --directo-soft: rgba(45, 106, 79, 0.22);
+  --danger: #e25555;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --sidebar-w: 220px;
+  --header-h: 56px;
+
+  --t-fast: 120ms;
+  --t-base: 200ms;
+  --t-slow: 320ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --font-ui: 'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+:root[data-theme='light'] {
+  --bg: #f7f7f5;
+  --panel: #ffffff;
+  --panel-2: #f0f0ec;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.16);
+  --text: #181818;
+  --text-dim: #666;
+  --text-muted: #999;
+  --accent: #2d6a4f;
+  --accent-light: #1f5b3f;
+  --accent-soft: rgba(45, 106, 79, 0.12);
+  --reserva: #4a90e2;
+  --reserva-soft: rgba(74, 144, 226, 0.14);
+  --booking: #4a90e2;
+  --booking-soft: rgba(74, 144, 226, 0.14);
+  --airbnb: #e87b30;
+  --airbnb-soft: rgba(232, 123, 48, 0.14);
+  --directo: #2d6a4f;
+  --directo-soft: rgba(45, 106, 79, 0.14);
+  --danger: #c84545;
+}
+
+:root[data-theme='light'] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ========================================
+   Layout principal
+   ======================================== */
+
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  height: 100vh;
+}
+
+.sidebar {
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 14px;
+}
+
+.brand {
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  padding: 6px 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-light);
+  box-shadow: 0 0 12px var(--accent-light);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  cursor: pointer;
+  position: relative;
+  transition: color var(--t-fast) var(--ease),
+    background var(--t-fast) var(--ease);
+}
+
+.nav-item:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.nav-item.active {
+  color: var(--text);
+  background: var(--accent-soft);
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: -14px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  background: var(--accent-light);
+  border-radius: 0 2px 2px 0;
+  animation: slideIn var(--t-base) var(--ease);
+}
+
+@keyframes slideIn {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.nav-item .icon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-shortcut {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.sidebar-spacer {
+  flex: 1;
+}
+
+.sidebar-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  margin-top: 16px;
+  background: var(--accent);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  transition: background var(--t-fast) var(--ease),
+    transform var(--t-fast) var(--ease);
+}
+
+.sidebar-cta:hover {
+  background: var(--accent-light);
+  color: var(--bg);
+  transform: translateY(-1px);
+}
+
+.sidebar-bottom {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-bottom .nav-item {
+  font-size: 13px;
+}
+
+/* ========================================
+   Vistas
+   ======================================== */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.view {
+  display: none;
+  flex: 1;
+  overflow: hidden;
+  flex-direction: column;
+  animation: fadeSlide var(--t-base) var(--ease);
+}
+
+.view.active {
+  display: flex;
+}
+
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.view-header {
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+
+.view-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  transition: all var(--t-fast) var(--ease);
+}
+
+.icon-btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.btn {
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-size: 13px;
+  transition: all var(--t-fast) var(--ease);
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-primary {
+  background: var(--accent);
+}
+.btn-primary:hover {
+  background: var(--accent-light);
+  color: var(--bg);
+}
+
+.btn-danger {
+  color: var(--danger);
+}
+.btn-danger:hover {
+  background: rgba(226, 85, 85, 0.12);
+}
+
+.view-body {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+}
+
+/* ========================================
+   Calendario
+   ======================================== */
+
+.cal-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cal-controls .month-label {
+  min-width: 160px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.view-toggle {
+  display: inline-flex;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.view-toggle button {
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-dim);
+  transition: all var(--t-fast) var(--ease);
+}
+
+.view-toggle button.active {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+/* Mes */
+.cal-month {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--border);
+}
+
+.cal-weekday {
+  padding: 8px 12px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-dim);
+}
+
+.cal-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 1px;
+  background: var(--border);
+}
+
+.cal-cell {
+  background: var(--bg);
+  padding: 6px 8px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background var(--t-fast) var(--ease);
+  min-height: 90px;
+  overflow: hidden;
+}
+
+.cal-cell:hover {
+  background: var(--panel);
+}
+
+.cal-cell.muted {
+  background: #0a0a0a;
+}
+.cal-cell.muted .cal-cell-num {
+  color: var(--text-muted);
+}
+
+.cal-cell.today .cal-cell-num {
+  background: var(--accent);
+  color: var(--text);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cal-cell.drop-target {
+  background: var(--accent-soft);
+}
+
+.cal-cell-num {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.cal-event {
+  background: var(--accent-soft);
+  border-left: 2px solid var(--accent-light);
+  color: var(--text);
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: grab;
+  transition: transform var(--t-fast) var(--ease),
+    box-shadow var(--t-fast) var(--ease);
+}
+
+.cal-event:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 0 1px var(--accent-light), 0 4px 12px rgba(45, 106, 79, 0.3);
+}
+
+.cal-event.dragging {
+  opacity: 0.4;
+}
+
+.cal-event.reserva {
+  background: var(--reserva-soft);
+  border-left-color: var(--reserva);
+}
+
+.cal-event.reserva:hover {
+  box-shadow: 0 0 0 1px var(--reserva), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.cal-event.reserva.airbnb {
+  background: var(--airbnb-soft);
+  border-left-color: var(--airbnb);
+}
+.cal-event.reserva.booking {
+  background: var(--booking-soft);
+  border-left-color: var(--booking);
+}
+.cal-event.reserva.directo {
+  background: var(--directo-soft);
+  border-left-color: var(--directo);
+}
+
+.cal-more {
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 0 6px;
+}
+
+/* Semana / Día — vista compacta */
+.cal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border);
+}
+
+.cal-list-day {
+  background: var(--bg);
+  padding: 12px 16px;
+}
+
+.cal-list-day.today {
+  background: var(--panel);
+}
+
+.cal-list-date {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.cal-list-event {
+  display: flex;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+  border-left: 2px solid var(--accent-light);
+}
+
+.cal-list-event.reserva {
+  border-left-color: var(--reserva);
+}
+.cal-list-event.reserva.airbnb {
+  border-left-color: var(--airbnb);
+}
+.cal-list-event.reserva.booking {
+  border-left-color: var(--booking);
+}
+.cal-list-event.reserva.directo {
+  border-left-color: var(--directo);
+}
+
+.cal-list-event:hover {
+  background: var(--panel-2);
+}
+
+.cal-list-event-time {
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  min-width: 90px;
+}
+
+.cal-list-empty {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* ========================================
+   Ideas
+   ======================================== */
+
+.ideas-capture {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  transition: border-color var(--t-base) var(--ease);
+}
+
+.ideas-capture:focus-within {
+  border-color: var(--accent-light);
+}
+
+.ideas-capture input {
+  flex: 1;
+  background: transparent;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--t-base) var(--ease);
+}
+
+.search-bar:focus-within {
+  border-color: var(--accent-light);
+}
+
+.search-bar input {
+  flex: 1;
+}
+
+.ideas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.idea-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease);
+  animation: fadeSlide var(--t-base) var(--ease);
+}
+
+.idea-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.idea-card.editing {
+  border-color: var(--accent-light);
+}
+
+.idea-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.idea-title {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.idea-body {
+  color: var(--text-dim);
+  white-space: pre-wrap;
+  font-size: 13px;
+}
+
+.idea-edit-input,
+.idea-edit-body {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  resize: vertical;
+}
+
+.idea-edit-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+/* ========================================
+   Reservas
+   ======================================== */
+
+.reservas-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.reservas-filters {
+  display: inline-flex;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.reservas-filters button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-dim);
+  transition: all var(--t-fast) var(--ease);
+}
+
+.reservas-filters button.active {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.reservas-stats {
+  margin-left: auto;
+  text-align: right;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.reservas-stats strong {
+  color: var(--accent-light);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.reservas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.reserva-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease);
+  animation: fadeSlide var(--t-base) var(--ease);
+  border-left: 3px solid var(--reserva);
+}
+
+.reserva-card.airbnb {
+  border-left-color: var(--airbnb);
+}
+.reserva-card.booking {
+  border-left-color: var(--booking);
+}
+.reserva-card.directo {
+  border-left-color: var(--directo);
+}
+
+.reserva-card.airbnb .reserva-platform {
+  color: var(--airbnb);
+}
+.reserva-card.booking .reserva-platform {
+  color: var(--booking);
+}
+.reserva-card.directo .reserva-platform {
+  color: var(--directo);
+}
+
+.reserva-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.reserva-platform {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--reserva);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.reserva-guest {
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.reserva-property {
+  color: var(--text-dim);
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.reserva-dates {
+  font-size: 12px;
+  color: var(--text);
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.reserva-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.reserva-amount {
+  color: var(--accent-light);
+  font-weight: 500;
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 600;
+}
+.status-pill.confirmada {
+  background: var(--accent-soft);
+  color: var(--accent-light);
+}
+.status-pill.pendiente {
+  background: rgba(255, 200, 0, 0.15);
+  color: #ffc800;
+}
+.status-pill.cancelada {
+  background: rgba(226, 85, 85, 0.15);
+  color: var(--danger);
+}
+
+/* Estado vacío */
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+.empty h3 {
+  color: var(--text-dim);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+/* ========================================
+   Caja (registro mensual de ingresos)
+   ======================================== */
+
+.caja-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.caja-summary-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  border-left: 3px solid var(--border-strong);
+  transition: transform var(--t-fast) var(--ease);
+  animation: fadeSlide var(--t-base) var(--ease);
+}
+
+.caja-summary-card:hover {
+  transform: translateY(-1px);
+}
+
+.caja-summary-card.accent {
+  border-left-color: var(--accent-light);
+}
+.caja-summary-card.airbnb {
+  border-left-color: var(--airbnb);
+}
+.caja-summary-card.booking {
+  border-left-color: var(--booking);
+}
+.caja-summary-card.directo {
+  border-left-color: var(--directo);
+}
+
+.caja-summary-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.caja-summary-value {
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.caja-summary-card.accent .caja-summary-value {
+  color: var(--accent-light);
+}
+.caja-summary-card.airbnb .caja-summary-value {
+  color: var(--airbnb);
+}
+.caja-summary-card.booking .caja-summary-value {
+  color: var(--booking);
+}
+.caja-summary-card.directo .caja-summary-value {
+  color: var(--directo);
+}
+
+.caja-summary-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.caja-months {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.caja-month {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  animation: fadeSlide var(--t-base) var(--ease);
+}
+
+.caja-month.empty {
+  opacity: 0.6;
+}
+
+.caja-month-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.caja-month-title {
+  font-weight: 500;
+  font-size: 14px;
+  flex: 1;
+}
+
+.caja-month-meta {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.caja-month-meta strong {
+  color: var(--accent-light);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.caja-month-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.caja-month-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-light));
+  border-radius: 2px;
+  transition: width var(--t-slow) var(--ease);
+}
+
+.caja-month-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.caja-row {
+  display: grid;
+  grid-template-columns: 50px 80px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--panel);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+  border-left: 2px solid transparent;
+}
+
+.caja-row:hover {
+  background: var(--panel-2);
+}
+.caja-row.airbnb {
+  border-left-color: var(--airbnb);
+}
+.caja-row.booking {
+  border-left-color: var(--booking);
+}
+.caja-row.directo {
+  border-left-color: var(--directo);
+}
+
+.caja-row-date {
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+
+.caja-row-platform {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.caja-row.airbnb .caja-row-platform {
+  color: var(--airbnb);
+}
+.caja-row.booking .caja-row-platform {
+  color: var(--booking);
+}
+.caja-row.directo .caja-row-platform {
+  color: var(--directo);
+}
+
+.caja-row-guest {
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.caja-row-amount {
+  color: var(--accent-light);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.caja-month-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 4px 0;
+}
+
+#caja-year-toggle button[data-dir] {
+  padding: 5px 10px;
+}
+
+/* ========================================
+   Modales
+   ======================================== */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn var(--t-fast) var(--ease);
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: min(480px, 92vw);
+  max-height: 90vh;
+  overflow: auto;
+  animation: modalIn 150ms var(--ease);
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.modal-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.modal-row.split {
+  flex-direction: row;
+  gap: 12px;
+}
+
+.modal-row.split > * {
+  flex: 1;
+}
+
+.modal-row label {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.modal-row input,
+.modal-row textarea,
+.modal-row select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  transition: border-color var(--t-fast) var(--ease);
+}
+
+.modal-row input:focus,
+.modal-row textarea:focus,
+.modal-row select:focus {
+  border-color: var(--accent-light);
+}
+
+.modal-row textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.modal-actions .btn-danger {
+  margin-right: auto;
+}
+
+/* ========================================
+   Settings popover (export/import/clear)
+   ======================================== */
+
+.settings-menu {
+  position: absolute;
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 6px;
+  min-width: 180px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  animation: fadeIn var(--t-fast) var(--ease);
+}
+
+.settings-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 13px;
+  transition: background var(--t-fast) var(--ease);
+}
+.settings-menu button:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.settings-menu button.danger {
+  color: var(--danger);
+}
+
+/* ========================================
+   Toast (feedback rápido)
+   ======================================== */
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--panel-2);
+  border: 1px solid var(--border-strong);
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  opacity: 0;
+  transition: all var(--t-base) var(--ease);
+  z-index: 200;
+  pointer-events: none;
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* ========================================
+   Vista Hoy
+   ======================================== */
+
+#view-hoy .view-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  align-content: start;
+}
+
+.hoy-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  animation: fadeSlide var(--t-base) var(--ease);
+}
+
+.hoy-card-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.hoy-empty {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+.hoy-event {
+  display: flex;
+  gap: 14px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+  border-radius: 4px;
+  padding-left: 6px;
+  padding-right: 6px;
+  margin-left: -6px;
+  margin-right: -6px;
+}
+
+.hoy-event:first-of-type {
+  border-top: none;
+}
+
+.hoy-event:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+:root[data-theme='light'] .hoy-event:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.hoy-event-time {
+  color: var(--accent-light);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  min-width: 100px;
+}
+
+.hoy-event-title {
+  flex: 1;
+  font-size: 14px;
+}
+
+.hoy-reserva {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: transform var(--t-fast) var(--ease);
+  border-left: 3px solid var(--reserva);
+}
+
+.hoy-reserva:hover {
+  transform: translateY(-1px);
+}
+
+.hoy-reserva.airbnb {
+  border-left-color: var(--airbnb);
+}
+.hoy-reserva.booking {
+  border-left-color: var(--booking);
+}
+.hoy-reserva.directo {
+  border-left-color: var(--directo);
+}
+
+.hoy-reserva-platform {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-bottom: 2px;
+}
+
+.hoy-reserva.airbnb .hoy-reserva-platform {
+  color: var(--airbnb);
+}
+.hoy-reserva.booking .hoy-reserva-platform {
+  color: var(--booking);
+}
+.hoy-reserva.directo .hoy-reserva-platform {
+  color: var(--directo);
+}
+
+.hoy-reserva-guest {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.hoy-reserva-dates {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.hoy-reserva-right {
+  text-align: right;
+}
+
+.hoy-reserva-when {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hoy-reserva-amount {
+  font-size: 14px;
+  color: var(--accent-light);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+.hoy-idea {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  cursor: pointer;
+  font-size: 13px;
+  transition: color var(--t-fast) var(--ease);
+}
+
+.hoy-idea:hover {
+  color: var(--accent-light);
+}
+
+.hoy-idea-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-light);
+  flex-shrink: 0;
+}
+
+/* ========================================
+   Métricas
+   ======================================== */
+
+.metricas-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.metricas-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 700px) {
+  .metricas-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.metricas-kpi {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  border-left: 3px solid var(--border-strong);
+  animation: fadeSlide var(--t-base) var(--ease);
+}
+
+.metricas-kpi.accent {
+  border-left-color: var(--accent-light);
+}
+.metricas-kpi.muted {
+  border-left-color: var(--text-muted);
+}
+
+.metricas-kpi-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.metricas-kpi-value {
+  font-size: 24px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.metricas-kpi.accent .metricas-kpi-value {
+  color: var(--accent-light);
+}
+
+.metricas-kpi-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.metricas-block {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  animation: fadeSlide var(--t-base) var(--ease);
+}
+
+.metricas-block-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-dim);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.platform-stack {
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  margin-bottom: 14px;
+}
+
+:root[data-theme='light'] .platform-stack {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.platform-seg {
+  height: 100%;
+  transition: width var(--t-slow) var(--ease);
+}
+.platform-seg.airbnb {
+  background: var(--airbnb);
+}
+.platform-seg.booking {
+  background: var(--booking);
+}
+.platform-seg.directo {
+  background: var(--directo);
+}
+
+.platform-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.platform-legend-item {
+  display: grid;
+  grid-template-columns: 14px 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.platform-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.platform-dot.airbnb {
+  background: var(--airbnb);
+}
+.platform-dot.booking {
+  background: var(--booking);
+}
+.platform-dot.directo {
+  background: var(--directo);
+}
+
+.platform-name {
+  text-transform: capitalize;
+  color: var(--text);
+}
+
+.platform-amount {
+  color: var(--accent-light);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.platform-pct {
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  min-width: 40px;
+  text-align: right;
+}
+
+.monthly-chart {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 6px;
+  height: 180px;
+}
+
+.monthly-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: default;
+}
+
+.monthly-bar-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.monthly-bar {
+  width: 100%;
+  background: linear-gradient(180deg, var(--accent-light), var(--accent));
+  border-radius: 3px 3px 0 0;
+  min-height: 2px;
+  transition: height var(--t-slow) var(--ease);
+}
+
+.monthly-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ========================================
+   FAB (botón flotante "+") — solo mobile
+   ======================================== */
+
+.fab {
+  display: none;
+  position: fixed;
+  right: 18px;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--text);
+  font-size: 28px;
+  font-weight: 300;
+  line-height: 56px;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  z-index: 90;
+  transition: transform var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+
+.fab:active {
+  transform: scale(0.94);
+  background: var(--accent-light);
+  color: var(--bg);
+}
+
+/* ========================================
+   RESPONSIVE — Mobile (<768px)
+   ========================================
+   Convierte el layout de sidebar+main en:
+   - Bottom nav fija (con safe-area)
+   - Main fullscreen scrollable
+   - Modales fullscreen con slide-up
+   - Calendario en modo lista
+   - FAB visible
+   ======================================== */
+
+@media (max-width: 767px) {
+  html, body {
+    overflow: auto;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    overscroll-behavior-y: contain;
+  }
+
+  /* Layout: sidebar abajo, main arriba */
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  /* Sidebar → bottom nav */
+  .sidebar {
+    grid-row: 2;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    padding: 6px 4px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    border-right: none;
+    border-top: 1px solid var(--border);
+    background: var(--panel);
+    position: relative;
+    z-index: 50;
+  }
+
+  .brand,
+  .sidebar-cta,
+  .sidebar-spacer {
+    display: none;
+  }
+
+  .nav {
+    flex: 1;
+    flex-direction: row;
+    justify-content: space-around;
+    gap: 0;
+  }
+
+  .sidebar-bottom {
+    flex-direction: row;
+    margin: 0;
+    gap: 0;
+  }
+
+  .nav-item {
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 4px;
+    min-width: 0;
+    min-height: 52px;
+    font-size: 10px;
+    text-align: center;
+  }
+
+  .nav-item .icon {
+    width: 22px;
+    height: 22px;
+    font-size: 18px;
+  }
+
+  .nav-item span:not(.icon):not(.nav-shortcut) {
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  .nav-shortcut {
+    display: none;
+  }
+
+  .nav-item.active::before {
+    left: 50%;
+    top: -7px;
+    bottom: auto;
+    width: 24px;
+    height: 3px;
+    border-radius: 0 0 2px 2px;
+    transform: translateX(-50%);
+  }
+
+  .nav-item.active::before {
+    animation: slideInTop var(--t-base) var(--ease);
+  }
+
+  /* Main */
+  .main {
+    grid-row: 1;
+    overflow: hidden;
+  }
+
+  .view {
+    height: 100%;
+  }
+
+  .view-header {
+    padding: 0 16px;
+    height: 52px;
+    gap: 8px;
+    padding-top: env(safe-area-inset-top, 0px);
+    height: calc(52px + env(safe-area-inset-top, 0px));
+  }
+
+  .view-title {
+    font-size: 15px;
+  }
+
+  .view-body {
+    padding: 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Botones más amigables al toque */
+  .btn,
+  .icon-btn {
+    min-height: 36px;
+    padding: 8px 14px;
+  }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+  }
+
+  /* CTAs principales en headers — más chicos en mobile */
+  #hoy-new,
+  #reserva-new {
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+
+  /* FAB visible solo mobile */
+  .fab {
+    display: block;
+  }
+
+  /* Hoy: una columna */
+  #view-hoy .view-body {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Calendario */
+  .cal-controls {
+    gap: 2px;
+  }
+
+  .cal-controls .month-label {
+    min-width: 0;
+    font-size: 13px;
+    padding: 0 6px;
+  }
+
+  .view-toggle button {
+    padding: 4px 8px;
+    font-size: 11px;
+    min-height: 32px;
+  }
+
+  /* Vista mes en mobile: más compacta, texto oculto */
+  .cal-cell {
+    min-height: 56px;
+    padding: 4px 4px;
+  }
+
+  .cal-cell-num {
+    font-size: 11px;
+  }
+
+  .cal-cell.today .cal-cell-num {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
+
+  .cal-event {
+    font-size: 10px;
+    padding: 1px 4px;
+    height: 4px;
+    overflow: hidden;
+    text-indent: -9999px;
+    border-left-width: 0;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+
+  .cal-event.reserva {
+    background: var(--reserva);
+  }
+  .cal-event.reserva.airbnb {
+    background: var(--airbnb);
+  }
+  .cal-event.reserva.booking {
+    background: var(--booking);
+  }
+  .cal-event.reserva.directo {
+    background: var(--directo);
+  }
+
+  .cal-more {
+    font-size: 9px;
+  }
+
+  /* Vista lista (semana / día): full width, mejor espacio */
+  .cal-list-event {
+    padding: 12px 14px;
+  }
+
+  .cal-list-event-time {
+    min-width: 70px;
+    font-size: 12px;
+  }
+
+  /* Reservas */
+  .reservas-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .reservas-filters {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .reservas-filters button {
+    flex: 1;
+    min-width: 70px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  .reservas-stats {
+    margin-left: 0;
+  }
+
+  .reservas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Métricas */
+  .metricas-kpis {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .metricas-kpi {
+    padding: 12px;
+  }
+
+  .metricas-kpi-value {
+    font-size: 18px;
+  }
+
+  .metricas-row-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .monthly-chart {
+    height: 140px;
+    gap: 3px;
+  }
+
+  .monthly-label {
+    font-size: 9px;
+  }
+
+  /* Modales fullscreen con slide-up */
+  .modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .modal {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 92vh;
+    border-radius: var(--radius) var(--radius) 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    padding: 20px 18px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    overscroll-behavior: contain;
+    animation: modalSlideUp 240ms var(--ease);
+  }
+
+  /* Handle visual del sheet */
+  .modal::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border-strong);
+    margin: -8px auto 16px;
+  }
+
+  .modal-row.split {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .modal-row input,
+  .modal-row textarea,
+  .modal-row select {
+    padding: 11px 12px;
+    font-size: 16px; /* >=16px evita zoom de iOS al focus */
+  }
+
+  .modal-actions {
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  .modal-actions .btn {
+    flex: 1;
+    min-height: 44px;
+  }
+
+  .modal-actions .btn-danger {
+    flex-basis: 100%;
+    margin-right: 0;
+    order: -1;
+  }
+
+  /* Captura de ideas: input más alto */
+  .ideas-capture input,
+  .search-bar input,
+  .idea-edit-input,
+  .idea-edit-body {
+    font-size: 16px;
+  }
+
+  /* Settings popover: en mobile se ancla al fondo */
+  .settings-menu {
+    position: fixed !important;
+    left: 16px !important;
+    right: 16px !important;
+    bottom: calc(78px + env(safe-area-inset-bottom, 0px)) !important;
+    top: auto !important;
+    min-width: 0;
+  }
+
+  .settings-menu button {
+    padding: 12px 12px;
+    font-size: 14px;
+  }
+
+  /* Toast: más arriba para no chocar con la bottom nav */
+  .toast {
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Hover desactivados en touch */
+  .nav-item:hover,
+  .btn:hover,
+  .icon-btn:hover,
+  .reserva-card:hover,
+  .idea-card:hover,
+  .hoy-event:hover,
+  .hoy-reserva:hover,
+  .cal-event:hover {
+    transform: none;
+    background: inherit;
+    box-shadow: none;
+  }
+
+  .nav-item:active {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  :root[data-theme='light'] .nav-item:active {
+    background: rgba(0, 0, 0, 0.05);
+  }
+}
+
+@keyframes slideInTop {
+  from {
+    transform: translateX(-50%) scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
