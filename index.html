@@ -64,6 +64,10 @@
             <span>Métricas</span>
             <span class="nav-shortcut">4</span>
           </div>
+          <div class="nav-item nav-more" id="btn-more" title="Más opciones">
+            <span class="icon">•••</span>
+            <span>Más</span>
+          </div>
         </nav>
 
         <button class="sidebar-cta" id="cta-new" title="Crear nuevo (N)">
@@ -316,11 +320,25 @@
         <div id="auth-step-sent" style="display: none">
           <h2>Revisá tu mail ✉</h2>
           <p class="auth-help">
-            Te enviamos el link de acceso a <strong id="auth-sent-email"></strong>. Abrí ese mail
-            desde este mismo dispositivo y tocá el botón. Si no te llegó, revisá spam.
+            Te enviamos un mail a <strong id="auth-sent-email"></strong>. Pegá el
+            <strong>código de 6 dígitos</strong> que dice ahí (funciona siempre, también en la app
+            del celular). O tocá el botón "Log In" desde el mismo dispositivo.
           </p>
+          <div class="modal-row">
+            <label>Código del mail</label>
+            <input
+              type="text"
+              id="auth-code"
+              placeholder="123456"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              maxlength="6"
+            />
+          </div>
+          <div class="auth-error" id="auth-error-code"></div>
           <div class="modal-actions">
-            <button class="btn btn-primary" data-close>Listo</button>
+            <button class="btn" id="auth-resend">Reenviar</button>
+            <button class="btn btn-primary" id="auth-verify">Entrar</button>
           </div>
         </div>
       </div>

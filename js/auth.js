@@ -81,6 +81,8 @@
     setTimeout(() => document.getElementById('auth-email').focus(), 50);
   }
 
+  let pendingEmail = null;
+
   async function submitLogin() {
     const emailEl = document.getElementById('auth-email');
     const errorEl = document.getElementById('auth-error');
@@ -95,14 +97,67 @@
     errorEl.textContent = '';
     try {
       await signIn(email);
+      pendingEmail = email;
       document.getElementById('auth-step-form').style.display = 'none';
       document.getElementById('auth-step-sent').style.display = '';
       document.getElementById('auth-sent-email').textContent = email;
+      document.getElementById('auth-code').value = '';
+      document.getElementById('auth-error-code').textContent = '';
+      setTimeout(() => document.getElementById('auth-code').focus(), 100);
     } catch (err) {
       errorEl.textContent = err.message || 'Error al enviar el link';
     } finally {
       btn.disabled = false;
       btn.textContent = 'Enviarme link';
+    }
+  }
+
+  async function verifyCode() {
+    const codeEl = document.getElementById('auth-code');
+    const errorEl = document.getElementById('auth-error-code');
+    const btn = document.getElementById('auth-verify');
+    const code = (codeEl.value || '').trim();
+    if (!pendingEmail) {
+      errorEl.textContent = 'Pedí el código primero';
+      return;
+    }
+    if (code.length < 6) {
+      errorEl.textContent = 'El código tiene 6 dígitos';
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Verificando…';
+    errorEl.textContent = '';
+    try {
+      const { error } = await window.supabaseClient.auth.verifyOtp({
+        email: pendingEmail,
+        token: code,
+        type: 'email',
+      });
+      if (error) throw error;
+      // onAuthStateChange se encarga del cierre del modal y demás
+      window.app.closeModal(document.getElementById('modal-auth'));
+    } catch (err) {
+      errorEl.textContent = err.message || 'Código inválido o vencido';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
+    }
+  }
+
+  async function resendCode() {
+    if (!pendingEmail) return;
+    const btn = document.getElementById('auth-resend');
+    btn.disabled = true;
+    btn.textContent = 'Enviando…';
+    try {
+      await signIn(pendingEmail);
+      window.app.toast('Código reenviado');
+    } catch (err) {
+      window.app.toast(err.message || 'Error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Reenviar';
     }
   }
 
@@ -185,6 +240,11 @@
     document.getElementById('auth-submit').addEventListener('click', submitLogin);
     document.getElementById('auth-email').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') submitLogin();
+    });
+    document.getElementById('auth-verify').addEventListener('click', verifyCode);
+    document.getElementById('auth-resend').addEventListener('click', resendCode);
+    document.getElementById('auth-code').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') verifyCode();
     });
   }
 
