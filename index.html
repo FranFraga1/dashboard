@@ -325,14 +325,15 @@
             del celular). O tocá el botón "Log In" desde el mismo dispositivo.
           </p>
           <div class="modal-row">
-            <label>Código del mail</label>
+            <label>Código del mail (6 dígitos o el código largo)</label>
             <input
               type="text"
               id="auth-code"
-              placeholder="123456"
-              inputmode="numeric"
+              placeholder="123456 o pkce_…"
               autocomplete="one-time-code"
-              maxlength="6"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
             />
           </div>
           <div class="auth-error" id="auth-error-code"></div>

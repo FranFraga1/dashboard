@@ -122,27 +122,37 @@
       return;
     }
     if (code.length < 6) {
-      errorEl.textContent = 'El código tiene 6 dígitos';
+      errorEl.textContent = 'Pegá el código completo del mail';
       return;
     }
     btn.disabled = true;
     btn.textContent = 'Verificando…';
     errorEl.textContent = '';
-    try {
-      const { error } = await window.supabaseClient.auth.verifyOtp({
-        email: pendingEmail,
-        token: code,
-        type: 'email',
-      });
-      if (error) throw error;
-      // onAuthStateChange se encarga del cierre del modal y demás
-      window.app.closeModal(document.getElementById('modal-auth'));
-    } catch (err) {
-      errorEl.textContent = err.message || 'Código inválido o vencido';
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Entrar';
+    // Detectamos formato: 6 dígitos numéricos = OTP corto, sino es magic link hash
+    const isShortOtp = /^\d{6}$/.test(code);
+    const types = isShortOtp ? ['email'] : ['magiclink', 'email'];
+    let lastErr = null;
+    for (const type of types) {
+      try {
+        const { error } = await window.supabaseClient.auth.verifyOtp({
+          email: pendingEmail,
+          token: code,
+          type,
+        });
+        if (!error) {
+          window.app.closeModal(document.getElementById('modal-auth'));
+          btn.disabled = false;
+          btn.textContent = 'Entrar';
+          return;
+        }
+        lastErr = error;
+      } catch (err) {
+        lastErr = err;
+      }
     }
+    errorEl.textContent = (lastErr && lastErr.message) || 'Código inválido o vencido';
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
   }
 
   async function resendCode() {
