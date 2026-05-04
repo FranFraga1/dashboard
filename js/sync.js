@@ -190,37 +190,40 @@
     setStatus('idle');
   }
 
-  // Replace local con remote, pero preserva items locales que aún estén en la cola
-  // (por si una operación pendiente todavía no subió por error de red).
+  // MERGE: une local + remote, dedupea por id, gana el de mayor updatedAt.
+  // No elimina items que están solo en local (los deletes de otros dispositivos
+  // no se propagan acá: para limpiar fantasmas, "Refrescar desde la nube").
+  // Esta política prioriza nunca perder data por encima de propagación de deletes.
   async function pullTable(table) {
     const sb = window.supabaseClient;
     const { data, error } = await sb.from(table).select('*');
     if (error) throw error;
     const remoteItems = (data || []).map((r) => fromRemote(table, r));
 
-    const queue = readQueue();
-    const pendingUpserts = new Set(
-      queue
-        .filter((op) => op.table === table && op.kind === 'upsert')
-        .map((op) => op.item.id)
-    );
-
     const localItems = storage[table].list();
-    const localById = new Map(localItems.map((it) => [it.id, it]));
 
-    const remoteIds = new Set(remoteItems.map((r) => r.id));
-    const result = remoteItems.slice();
-    // Agregar items locales que aún están pendientes de subir
-    pendingUpserts.forEach((id) => {
-      if (!remoteIds.has(id) && localById.has(id)) {
-        result.push(localById.get(id));
+    // SAFETY: si remote viene vacío pero local tiene items, no tocar.
+    if (remoteItems.length === 0 && localItems.length > 0) {
+      console.warn(
+        `[sync] Pull de "${table}" devolvió 0 filas pero local tiene ${localItems.length}. No se toca local.`
+      );
+      return;
+    }
+
+    const byId = new Map();
+    localItems.forEach((it) => byId.set(it.id, it));
+    remoteItems.forEach((rem) => {
+      const loc = byId.get(rem.id);
+      if (!loc || (rem.updatedAt || 0) >= (loc.updatedAt || 0)) {
+        byId.set(rem.id, rem);
       }
     });
-    storage._replaceLocal(table, result);
+    storage._replaceLocal(table, Array.from(byId.values()));
   }
 
-  // Pull "fuerza bruta" — reemplaza local con remote sin preservar nada.
-  // Útil para limpiar items fantasma acumulados por bugs anteriores.
+  // Pull "fuerza bruta" — reemplaza local con remote.
+  // ANTES de reemplazar, sube todo lo local que no esté en remote (idempotente)
+  // para no perder items huérfanos.
   async function forceRefresh() {
     if (!window.auth || !window.auth.isAuthenticated()) return;
     if (!navigator.onLine) {
@@ -229,8 +232,31 @@
     }
     setStatus('syncing');
     try {
-      writeQueue([]); // descartamos cola pendiente
       const sb = window.supabaseClient;
+      const user = window.auth.getUser();
+
+      // 1) Para cada tabla: detectar items locales que no están en remote y subirlos
+      for (const t of TABLES) {
+        const localItems = storage[t].list();
+        if (localItems.length === 0) continue;
+        const { data: remoteIds, error: idsErr } = await sb.from(t).select('id');
+        if (idsErr) throw idsErr;
+        const known = new Set((remoteIds || []).map((r) => r.id));
+        const orphans = localItems.filter((l) => !known.has(l.id));
+        if (orphans.length > 0) {
+          const rows = orphans.map((it) => toRemote(t, it, user.id));
+          for (let i = 0; i < rows.length; i += 100) {
+            const chunk = rows.slice(i, i + 100);
+            const { error } = await sb.from(t).upsert(chunk);
+            if (error) throw error;
+          }
+        }
+      }
+
+      // 2) Limpiar cola pendiente (si quedó algo, los huérfanos ya fueron subidos)
+      writeQueue([]);
+
+      // 3) Bajar todo y reemplazar local
       for (const t of TABLES) {
         const { data, error } = await sb.from(t).select('*');
         if (error) throw error;
@@ -356,12 +382,20 @@
     window.addEventListener('offline', () => setStatus('offline'));
 
     if (window.auth) {
+      let didInitialSync = false;
       window.auth.onChange(async (session) => {
         if (session) {
+          if (didInitialSync) {
+            // Ya sincronizamos en este "boot". Token refreshes no re-sincronizan
+            // (eso disparaba pulls innecesarios y podía pisar items recién creados).
+            return;
+          }
+          didInitialSync = true;
           setStatus('syncing');
           await offerMigration();
           await fullSync();
         } else {
+          didInitialSync = false;
           setStatus('local');
           updateIndicator();
         }
