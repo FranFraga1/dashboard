@@ -194,8 +194,39 @@
     const sb = window.supabaseClient;
     const { data, error } = await sb.from(table).select('*');
     if (error) throw error;
-    const items = (data || []).map((r) => fromRemote(table, r));
-    storage._replaceLocal(table, items);
+    const remoteItems = (data || []).map((r) => fromRemote(table, r));
+
+    // MERGE en lugar de replace: preserva items locales con updatedAt mayor
+    // (caso típico: el usuario editó algo en este dispositivo y todavía no terminó de subir).
+    const localItems = storage[table].list();
+    const byId = new Map();
+    localItems.forEach((it) => byId.set(it.id, it));
+    remoteItems.forEach((rem) => {
+      const loc = byId.get(rem.id);
+      if (!loc || (rem.updatedAt || 0) >= (loc.updatedAt || 0)) {
+        byId.set(rem.id, rem);
+      }
+    });
+    storage._replaceLocal(table, Array.from(byId.values()));
+  }
+
+  // Sube todos los items locales al server (upsert idempotente).
+  // Se usa antes de cada pull para garantizar que nada local se pierda.
+  async function pushAllLocal() {
+    const sb = window.supabaseClient;
+    const user = window.auth.getUser();
+    if (!user) return;
+    for (const table of TABLES) {
+      const items = storage[table].list();
+      if (items.length === 0) continue;
+      const rows = items.map((it) => toRemote(table, it, user.id));
+      // chunks de 100 para no exceder límites
+      for (let i = 0; i < rows.length; i += 100) {
+        const chunk = rows.slice(i, i + 100);
+        const { error } = await sb.from(table).upsert(chunk);
+        if (error) throw error;
+      }
+    }
   }
 
   async function pullAll() {
@@ -218,9 +249,33 @@
       setStatus('offline');
       return;
     }
-    await flushQueue();
-    if (status === 'error' || status === 'offline') return;
-    await pullAll();
+    setStatus('syncing');
+    try {
+      // 1) Procesar cola de operaciones pendientes (deletes incluidos)
+      await flushQueueInner();
+      // 2) Subir todo lo local que aún pueda no estar en el server (idempotente)
+      await pushAllLocal();
+      // 3) Recién ahora bajar y mergear
+      for (const t of TABLES) {
+        await pullTable(t);
+      }
+      setStatus('idle');
+      if (window.app && window.app.rerenderAll) window.app.rerenderAll();
+    } catch (err) {
+      console.warn('Sync falló', err);
+      setStatus('error', err.message || String(err));
+    }
+  }
+
+  // Versión "interna" que tira si falla, para usar dentro de fullSync
+  async function flushQueueInner() {
+    let q = readQueue();
+    while (q.length > 0) {
+      const op = q[0];
+      await pushOne(op);
+      q.shift();
+      writeQueue(q);
+    }
   }
 
   // Llamado desde storage en cada add/update/remove
