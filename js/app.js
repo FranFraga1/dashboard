@@ -27,6 +27,8 @@
 
   function closeModal(el) {
     el.classList.remove('open');
+    el.style.height = '';
+    el.style.top = '';
     if (openModalEl === el) openModalEl = null;
   }
 
@@ -180,6 +182,22 @@
           await window.sync.fullSync();
         });
         menu.appendChild(syncBtn);
+
+        const refreshBtn = document.createElement('button');
+        refreshBtn.innerHTML = '<span>⟳</span><span>Refrescar desde la nube</span>';
+        refreshBtn.title = 'Reemplaza los datos locales con lo que hay en Supabase. Útil si quedaron duplicados.';
+        refreshBtn.addEventListener('click', async () => {
+          menu.remove();
+          if (
+            !confirm(
+              'Esto descarta cualquier cambio local pendiente y baja todo desde la nube. ¿Seguir?'
+            )
+          )
+            return;
+          await window.sync.forceRefresh();
+          toast('Datos refrescados desde la nube');
+        });
+        menu.appendChild(refreshBtn);
 
         const outBtn = document.createElement('button');
         outBtn.className = 'danger';
@@ -381,9 +399,25 @@
 
     document.querySelectorAll('.modal-backdrop').forEach((m) => {
       m.addEventListener('click', (e) => {
-        if (e.target === m) closeModal(m);
+        if (e.target !== m) return;
+        // En mobile no cerramos al tocar el backdrop:
+        // con el teclado abierto, los toques caían en el backdrop por accidente y cerraban el modal.
+        if (window.matchMedia('(max-width: 767px)').matches) return;
+        closeModal(m);
       });
     });
+
+    // Ajusta los modales al viewport real cuando se abre/cierra el teclado en iOS
+    if (window.visualViewport) {
+      const adjustModals = () => {
+        const open = document.querySelector('.modal-backdrop.open');
+        if (!open) return;
+        open.style.height = window.visualViewport.height + 'px';
+        open.style.top = window.visualViewport.offsetTop + 'px';
+      };
+      window.visualViewport.addEventListener('resize', adjustModals);
+      window.visualViewport.addEventListener('scroll', adjustModals);
+    }
   }
 
   function bindSettings() {

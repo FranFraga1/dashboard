@@ -170,6 +170,22 @@
     window.app.openModal(modal);
   }
 
+  function findConflicts(newData, currentId) {
+    if (!newData.checkin || !newData.checkout) return [];
+    if (newData.status === 'cancelada') return [];
+    const propA = (newData.property || '').trim().toLowerCase();
+    return storage.reservas.list().filter((r) => {
+      if (r.id === currentId) return false;
+      if (r.status === 'cancelada') return false;
+      if (!r.checkin || !r.checkout) return false;
+      // Si ambas tienen propiedad y son distintas, no es conflicto
+      const propB = (r.property || '').trim().toLowerCase();
+      if (propA && propB && propA !== propB) return false;
+      // Solapamiento de rangos: a.checkin < b.checkout && a.checkout > b.checkin
+      return newData.checkin < r.checkout && newData.checkout > r.checkin;
+    });
+  }
+
   function save() {
     const id = document.getElementById('reserva-id').value;
     const data = {
@@ -194,6 +210,18 @@
     if (data.checkout <= data.checkin) {
       window.app.toast('Check-out debe ser después del check-in');
       return;
+    }
+
+    const conflicts = findConflicts(data, id);
+    if (conflicts.length > 0) {
+      const c = conflicts[0];
+      const propLabel = c.property ? ` en "${c.property}"` : '';
+      const more = conflicts.length > 1 ? `\n(y ${conflicts.length - 1} más)` : '';
+      const msg =
+        `⚠ Se superpone con la reserva de ${c.guest || 'sin huésped'}${propLabel} ` +
+        `(${fmtDate(c.checkin)} → ${fmtDate(c.checkout)}).${more}\n\n` +
+        `¿Guardarla de todos modos?`;
+      if (!confirm(msg)) return;
     }
 
     if (id) storage.reservas.update(id, data);

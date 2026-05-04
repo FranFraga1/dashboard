@@ -193,6 +193,24 @@
     });
     menu.appendChild(sync);
 
+    const refresh = document.createElement('button');
+    refresh.textContent = '⟳ Refrescar desde la nube';
+    refresh.title = 'Reemplaza los datos locales con lo que hay en Supabase';
+    refresh.addEventListener('click', async () => {
+      menu.remove();
+      if (
+        !confirm(
+          'Esto descarta cualquier cambio local pendiente y baja todo desde la nube. ¿Seguir?'
+        )
+      )
+        return;
+      if (window.sync) {
+        await window.sync.forceRefresh();
+        window.app.toast('Datos refrescados');
+      }
+    });
+    menu.appendChild(refresh);
+
     const out = document.createElement('button');
     out.className = 'danger';
     out.textContent = '↪ Cerrar sesión';

@@ -190,55 +190,57 @@
     setStatus('idle');
   }
 
+  // Replace local con remote, pero preserva items locales que aún estén en la cola
+  // (por si una operación pendiente todavía no subió por error de red).
   async function pullTable(table) {
     const sb = window.supabaseClient;
     const { data, error } = await sb.from(table).select('*');
     if (error) throw error;
     const remoteItems = (data || []).map((r) => fromRemote(table, r));
 
-    // MERGE en lugar de replace: preserva items locales con updatedAt mayor
-    // (caso típico: el usuario editó algo en este dispositivo y todavía no terminó de subir).
+    const queue = readQueue();
+    const pendingUpserts = new Set(
+      queue
+        .filter((op) => op.table === table && op.kind === 'upsert')
+        .map((op) => op.item.id)
+    );
+
     const localItems = storage[table].list();
-    const byId = new Map();
-    localItems.forEach((it) => byId.set(it.id, it));
-    remoteItems.forEach((rem) => {
-      const loc = byId.get(rem.id);
-      if (!loc || (rem.updatedAt || 0) >= (loc.updatedAt || 0)) {
-        byId.set(rem.id, rem);
+    const localById = new Map(localItems.map((it) => [it.id, it]));
+
+    const remoteIds = new Set(remoteItems.map((r) => r.id));
+    const result = remoteItems.slice();
+    // Agregar items locales que aún están pendientes de subir
+    pendingUpserts.forEach((id) => {
+      if (!remoteIds.has(id) && localById.has(id)) {
+        result.push(localById.get(id));
       }
     });
-    storage._replaceLocal(table, Array.from(byId.values()));
+    storage._replaceLocal(table, result);
   }
 
-  // Sube todos los items locales al server (upsert idempotente).
-  // Se usa antes de cada pull para garantizar que nada local se pierda.
-  async function pushAllLocal() {
-    const sb = window.supabaseClient;
-    const user = window.auth.getUser();
-    if (!user) return;
-    for (const table of TABLES) {
-      const items = storage[table].list();
-      if (items.length === 0) continue;
-      const rows = items.map((it) => toRemote(table, it, user.id));
-      // chunks de 100 para no exceder límites
-      for (let i = 0; i < rows.length; i += 100) {
-        const chunk = rows.slice(i, i + 100);
-        const { error } = await sb.from(table).upsert(chunk);
-        if (error) throw error;
-      }
+  // Pull "fuerza bruta" — reemplaza local con remote sin preservar nada.
+  // Útil para limpiar items fantasma acumulados por bugs anteriores.
+  async function forceRefresh() {
+    if (!window.auth || !window.auth.isAuthenticated()) return;
+    if (!navigator.onLine) {
+      setStatus('offline');
+      return;
     }
-  }
-
-  async function pullAll() {
     setStatus('syncing');
     try {
+      writeQueue([]); // descartamos cola pendiente
+      const sb = window.supabaseClient;
       for (const t of TABLES) {
-        await pullTable(t);
+        const { data, error } = await sb.from(t).select('*');
+        if (error) throw error;
+        const items = (data || []).map((r) => fromRemote(t, r));
+        storage._replaceLocal(t, items);
       }
       setStatus('idle');
       if (window.app && window.app.rerenderAll) window.app.rerenderAll();
     } catch (err) {
-      console.warn('Sync pull falló', err);
+      console.warn('Force refresh falló', err);
       setStatus('error', err.message || String(err));
     }
   }
@@ -251,11 +253,10 @@
     }
     setStatus('syncing');
     try {
-      // 1) Procesar cola de operaciones pendientes (deletes incluidos)
+      // 1) Subir todo lo pendiente (incluye deletes hechos en este dispositivo)
       await flushQueueInner();
-      // 2) Subir todo lo local que aún pueda no estar en el server (idempotente)
-      await pushAllLocal();
-      // 3) Recién ahora bajar y mergear
+      // 2) Bajar y reemplazar local. Los deletes hechos en otros dispositivos se
+      //    propagan acá. Items que aún están en cola se preservan en pullTable.
       for (const t of TABLES) {
         await pullTable(t);
       }
@@ -368,5 +369,5 @@
     }
   }
 
-  window.sync = { init, fullSync, push, getStatus, onStatusChange };
+  window.sync = { init, fullSync, forceRefresh, push, getStatus, onStatusChange };
 })();
