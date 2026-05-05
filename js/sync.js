@@ -196,7 +196,8 @@
   // Esta política prioriza nunca perder data por encima de propagación de deletes.
   async function pullTable(table) {
     const sb = window.supabaseClient;
-    const { data, error } = await sb.from(table).select('*');
+    const user = window.auth.getUser();
+    const { data, error } = await sb.from(table).select('*').eq('user_id', user.id);
     if (error) throw error;
     const remoteItems = (data || []).map((r) => fromRemote(table, r));
 
@@ -239,7 +240,10 @@
       for (const t of TABLES) {
         const localItems = storage[t].list();
         if (localItems.length === 0) continue;
-        const { data: remoteIds, error: idsErr } = await sb.from(t).select('id');
+        const { data: remoteIds, error: idsErr } = await sb
+          .from(t)
+          .select('id')
+          .eq('user_id', user.id);
         if (idsErr) throw idsErr;
         const known = new Set((remoteIds || []).map((r) => r.id));
         const orphans = localItems.filter((l) => !known.has(l.id));
@@ -258,7 +262,7 @@
 
       // 3) Bajar todo y reemplazar local
       for (const t of TABLES) {
-        const { data, error } = await sb.from(t).select('*');
+        const { data, error } = await sb.from(t).select('*').eq('user_id', user.id);
         if (error) throw error;
         const items = (data || []).map((r) => fromRemote(t, r));
         storage._replaceLocal(t, items);
@@ -330,15 +334,19 @@
 
     // Chequear si ya hay datos en remoto (para no preguntar si la cuenta tenía data)
     const sb = window.supabaseClient;
+    const uid = user.id;
     const { count: remoteEvents } = await sb
       .from('events')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', uid);
     const { count: remoteIdeas } = await sb
       .from('ideas')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', uid);
     const { count: remoteReservas } = await sb
       .from('reservas')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', uid);
     const remoteTotal = (remoteEvents || 0) + (remoteIdeas || 0) + (remoteReservas || 0);
 
     if (remoteTotal > 0) return; // ya tiene datos en la nube, no migramos automáticamente
